@@ -1,0 +1,100 @@
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+
+// MazeSolver class implementing the DFS algorithm to solve the maze
+class MazeSolver {
+    public boolean solveMaze(int[][] maze, int x, int y, List<Point> path) {
+        // Base case: If reached the end of the maze
+        if (x == maze.length - 1 && y == maze[0].length - 1) {
+            path.add(new Point(x, y));
+            return true;
+        }
+
+        // Check if the current position is a valid move
+        if (x >= 0 && x < maze.length && y >= 0 && y < maze[0].length && maze[x][y] == 0) {
+            path.add(new Point(x, y));
+            maze[x][y] = 2; // Mark as part of the solution path
+
+            // Try moving in all four possible directions (down, right, up, left)
+            if (solveMaze(maze, x + 1, y, path) || solveMaze(maze, x, y + 1, path)
+                    || solveMaze(maze, x - 1, y, path) || solveMaze(maze, x, y - 1, path)) {
+                return true;
+            }
+
+            // If none of the moves work, backtrack by removing the current point
+            path.remove(path.size() - 1);
+        }
+
+        return false;
+    }
+}
+
+// MazeSolverGUI class for creating the GUI and displaying the maze
+public class MazeSolverGUI extends JPanel {
+
+    private int[][] maze;
+    private List<Point> path;
+
+    public MazeSolverGUI(int[][] maze, List<Point> path) {
+        this.maze = maze;
+        this.path = path;
+        this.setPreferredSize(new Dimension(400, 400));
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        int cellSize = 50;
+
+        for (int i = 0; i < maze.length; i++) {
+            for (int j = 0; j < maze[i].length; j++) {
+                if (maze[i][j] == 1) {
+                    g.setColor(Color.BLACK); // Wall
+                } else if (maze[i][j] == 0) {
+                    g.setColor(Color.WHITE); // Path
+                } else if (maze[i][j] == 2) {
+                    g.setColor(Color.GREEN); // Solution Path
+                }
+                g.fillRect(j * cellSize, i * cellSize, cellSize, cellSize);
+                g.setColor(Color.GRAY);
+                g.drawRect(j * cellSize, i * cellSize, cellSize, cellSize);
+            }
+        }
+
+        // Draw the start and end points
+        g.setColor(Color.BLUE);
+        g.fillOval(1 * cellSize, 0 * cellSize, cellSize, cellSize); // Start point
+        g.setColor(Color.RED);
+        g.fillOval((maze[0].length - 1) * cellSize, (maze.length - 1) * cellSize, cellSize, cellSize); // End point
+    }
+
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Maze Solver");
+
+        // Define the maze (1 represents walls, 0 represents paths)
+        int[][] maze = {
+                {1, 0, 1, 1, 1, 1},
+                {1, 0, 1, 0, 0, 1},
+                {1, 0, 1, 0, 1, 1},
+                {1, 0, 0, 0, 0, 1},
+                {1, 1, 1, 1, 0, 1},
+                {1, 1, 1, 1, 0, 1},
+        };
+
+        // List to store the path from start to end
+        List<Point> path = new ArrayList<>();
+
+        // Instantiate the MazeSolver and solve the maze
+        MazeSolver solver = new MazeSolver();
+        solver.solveMaze(maze, 0, 1, path);
+
+        // Create the GUI panel and add it to the frame
+        MazeSolverGUI mazePanel = new MazeSolverGUI(maze, path);
+        frame.add(mazePanel);
+        frame.pack();
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
+    }
+}
